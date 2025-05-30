@@ -25,10 +25,58 @@ const servidor = http.createServer((req, res) => {
   
   // TODO: Implementar el manejo de las siguientes rutas:
   // 1. '/' - Mensaje de bienvenida
+  if (path === '/') {
+    res.statusCode = 200;
+    res.end(JSON.stringify({ mensaje: 'Bienvenido al servidor de frutas' }));
+    return;
+  }
   // 2. '/frutas/all' - Devolver todas las frutas
+  if (path === '/frutas/all') {
+    const frutas = leerFrutas();
+    res.statusCode = 200;
+    res.end(JSON.stringify(frutas));
+    return;
+  }
   // 3. '/frutas/id/123' - Devolver una fruta por su ID
+  const idFruta = path.match(/\/frutas\/id\/(.+)/);
+  if (idFruta) {
+    const id = parseInt(idFruta[1], 10);
+    if (isNaN(id)) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: 'ID inválido' }));
+      return;
+    }
+    const frutas = leerFrutas();
+    const fruta = frutas.find(f => f.id === id);
+    if (fruta) {
+      res.statusCode = 200;
+      res.end(JSON.stringify(fruta));
+    } else {
+      res.statusCode = 404;
+      res.end(JSON.stringify({ error: 'Fruta no encontrada: '+ id }));
+    }
+    return;
+  }
   // 4. '/frutas/nombre/manzana' - Buscar frutas por nombre (parcial)
+  const nombreMatch = path.match(/\/frutas\/nombre\/(.+)/);
+  if (nombreMatch) {
+    const nombre = nombreMatch[1].toLowerCase();
+    const frutas = leerFrutas();
+    const frutasEncontradas = frutas.filter(f => f.nombre.toLowerCase().includes(nombre));
+    res.statusCode = 200;
+    res.end(JSON.stringify(frutasEncontradas));
+    return;
+  }
   // 5. '/frutas/existe/manzana' - Verificar si existe una fruta
+  const existeMatch = path.match(/\/frutas\/existe\/(.+)/);
+  if (existeMatch) {
+    const nombre = existeMatch[1].toLowerCase();
+    const frutas = leerFrutas();
+    const existe = frutas.some(f => f.nombre.toLowerCase() === nombre);
+    res.statusCode = 200;
+    res.end(JSON.stringify({ existe }));
+    return;
+  }
   // 6. Cualquier otra ruta - Error 404
   
   // Por ahora, devolvemos un 404 para todas las rutas
